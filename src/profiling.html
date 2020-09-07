@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Basic profiling of wasm functions</title>
+    <script>
+      (async () => {
+        const testInstance = await WebAssembly.instantiateStreaming(fetch('stepping-with-state.wasm'));
+        const importObj = {imports: {func: testInstance.instance.exports.addMultiply}};
+        const profilingInstance = await WebAssembly.instantiateStreaming(fetch('profiling.wasm'), importObj);
+        console.log(profilingInstance.instance.exports.main(100000000, 1, 1));
+      })().catch(console.error);
+    </script>
+  </head>
+  <body>
+    <h1></h1>
+    <p>
+      This tests that we can successfully profile a wasm application and view the accumulated time as well as the call tree.
+    </p>
+    <h2>Steps</h2>
+    <p>
+      <ol>
+        <li>Open DevTools</li>
+        <li>Open the Performance Tab</li>
+        <li>Click the record button</li>
+        <li>Reload the page and wait for application to finish (console output appears)</li>
+        <li>Stop the recording</li>
+        <li>Check if the performance tab reflects the correct info:</li>
+        Check "Summary" tab:
+        <ol>
+            <li>Search for "addMultiply" (CMD/CTRL-F)</li>
+            <li>The "Summary" tab shows a non-zero total time for "addMultiply</li>
+            <li>Clicking on the function link should redirect to the "stepping-with-state.wasm" file in the Sources tab</li>
+        </ol>
+        Check "Bottom Up" tab:
+        <ol>
+            <li>Search for "addMultiply" (CMD/CTRL-F)</li>
+            <li>Click on the "Bottom Up" Tab</li>
+            <li>Expand the tree; it should show: "addMultiply", "js-to-wasm:.*", "(anonymous)", "Run Microtasks</li>
+            <li>Clear the profile</li>
+        </ol>
+      </ol>
+    </p>
+  </body>
+</html>
